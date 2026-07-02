@@ -5,6 +5,7 @@ import { defaultData } from './utils/defaultData'
 
 function App() {
   const [data, setData] = useState(defaultData)
+  const [generandoPdf, setGenerandoPdf] = useState(false)
   const previewRef = useRef(null)
 
   const handleReset = () => setData(defaultData)
@@ -13,19 +14,49 @@ function App() {
 
   const handleDownloadPdf = async () => {
     const element = previewRef.current
-    if (!element) return
-    const html2pdf = (await import('html2pdf.js')).default
-    const nombreArchivo = `Contrato_${data.trabajador.nombre.trim().replace(/\s+/g, '_') || 'trabajo'}.pdf`
-    html2pdf()
-      .set({
-        margin: 10,
-        filename: nombreArchivo,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    if (!element || generandoPdf) return
+
+    setGenerandoPdf(true)
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas-pro'),
+        import('jspdf'),
+      ])
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
       })
-      .from(element)
-      .save()
+
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = pdfWidth
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const imgData = canvas.toDataURL('image/jpeg', 0.98)
+
+      let heightLeft = imgHeight
+      let position = 0
+
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pdfHeight
+
+      while (heightLeft > 0) {
+        position -= pdfHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pdfHeight
+      }
+
+      const nombreArchivo = `Contrato_${data.trabajador.nombre.trim().replace(/\s+/g, '_') || 'trabajo'}.pdf`
+      pdf.save(nombreArchivo)
+    } catch (error) {
+      console.error('Error al generar el PDF:', error)
+      alert('Ocurrió un error al generar el PDF. Revisa la consola para más detalles.')
+    } finally {
+      setGenerandoPdf(false)
+    }
   }
 
   return (
@@ -45,9 +76,10 @@ function App() {
             </button>
             <button
               onClick={handleDownloadPdf}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+              disabled={generandoPdf}
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Descargar PDF
+              {generandoPdf ? 'Generando…' : 'Descargar PDF'}
             </button>
           </div>
         </div>
