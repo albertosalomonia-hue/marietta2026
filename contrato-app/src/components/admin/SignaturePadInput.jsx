@@ -64,6 +64,22 @@ export default function SignaturePadInput({ initialValue, firmaGuardada, onSave,
         )}
       </div>
 
+      {firmaGuardada && (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-indigo-200 bg-indigo-50 p-2">
+          <div className="flex items-center gap-2">
+            <img src={firmaGuardada} alt="Firma guardada en el sistema" className="h-10 w-20 rounded bg-white object-contain" />
+            <span className="text-xs text-indigo-700">Ya tienes una firma guardada en el sistema</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onSave(firmaGuardada)}
+            className="shrink-0 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
+          >
+            Usar mi firma guardada
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="text-xs font-medium text-slate-600">
           O sube una imagen de la firma:{' '}

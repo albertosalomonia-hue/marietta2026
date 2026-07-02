@@ -3,7 +3,7 @@ import Avatar from './admin/Avatar'
 import StatusBadge from './admin/StatusBadge'
 import ContractViewerModal from './admin/ContractViewerModal'
 import SignatureModal from './admin/SignatureModal'
-import { calcularEstadoEmpleado, employeeContratoToContractData } from '../utils/employeeContracts'
+import { calcularEstadoEmpleado, employeeContratoToContractData, obtenerFirmaGuardada } from '../utils/employeeContracts'
 import { formatearFechaLarga } from '../utils/fechas'
 
 export default function EmployeePortal({ employee, employerConfig, onMarcarLeido, onFirmar, onLogout }) {
@@ -119,6 +119,7 @@ export default function EmployeePortal({ employee, employerConfig, onMarcarLeido
       {firmando && ultimo && (
         <SignatureModal
           title={`Firma de ${employee.nombre}`}
+          firmaGuardada={obtenerFirmaGuardada(employee)}
           onSave={(dataUrl) => onFirmar(ultimo.id, dataUrl)}
           onClose={() => setFirmando(false)}
         />

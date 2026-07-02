@@ -3,7 +3,7 @@ import Modal from './Modal'
 import StatusBadge from './StatusBadge'
 import ContractViewerModal from './ContractViewerModal'
 import SignatureModal from './SignatureModal'
-import { calcularEstadoEmpleado, employeeContratoToContractData, generarSiguienteContrato } from '../../utils/employeeContracts'
+import { calcularEstadoEmpleado, employeeContratoToContractData, generarSiguienteContrato, obtenerFirmaGuardada } from '../../utils/employeeContracts'
 import { formatearFechaLarga } from '../../utils/fechas'
 
 export default function ContratosModal({ employee, employerConfig, onGenerarContrato, onFirmarContrato, onClose }) {
@@ -120,6 +120,7 @@ export default function ContratosModal({ employee, employerConfig, onGenerarCont
       {firmandoContratoId && (
         <SignatureModal
           title={`Firma de ${employee.nombre}`}
+          firmaGuardada={obtenerFirmaGuardada(employee)}
           onSave={handleGuardarFirma}
           onClose={() => setFirmandoContratoId(null)}
         />
