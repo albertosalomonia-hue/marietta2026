@@ -1,0 +1,5 @@
+{
+  "installCommand": "cd contrato-app && npm install",
+  "buildCommand": "cd contrato-app && npm run build",
+  "outputDirectory": "contrato-app/dist"
+}
