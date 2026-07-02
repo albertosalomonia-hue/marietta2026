@@ -13,8 +13,11 @@ function App() {
   const handlePrint = () => window.print()
 
   const handleDownloadPdf = async () => {
-    const element = previewRef.current
-    if (!element || generandoPdf) return
+    const container = previewRef.current
+    if (!container || generandoPdf) return
+
+    const pageEls = container.querySelectorAll('.pdf-page--sheet')
+    if (!pageEls.length) return
 
     setGenerandoPdf(true)
     try {
@@ -23,30 +26,19 @@ function App() {
         import('jspdf'),
       ])
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-      })
-
       const pdf = new jsPDF('p', 'mm', 'a4')
       const pdfWidth = pdf.internal.pageSize.getWidth()
       const pdfHeight = pdf.internal.pageSize.getHeight()
-      const imgWidth = pdfWidth
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      const imgData = canvas.toDataURL('image/jpeg', 0.98)
 
-      let heightLeft = imgHeight
-      let position = 0
-
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pdfHeight
-
-      while (heightLeft > 0) {
-        position -= pdfHeight
-        pdf.addPage()
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pdfHeight
+      for (let i = 0; i < pageEls.length; i++) {
+        const canvas = await html2canvas(pageEls[i], {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+        })
+        const imgData = canvas.toDataURL('image/jpeg', 0.95)
+        if (i > 0) pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
       }
 
       const nombreArchivo = `Contrato_${data.trabajador.nombre.trim().replace(/\s+/g, '_') || 'trabajo'}.pdf`

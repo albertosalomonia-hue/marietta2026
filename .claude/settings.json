@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node diagnose2.mjs)",
+      "Bash(node checktext.mjs)",
+      "Bash(node diagnose.mjs)"
+    ]
+  }
+}
