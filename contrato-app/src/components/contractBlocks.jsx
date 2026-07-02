@@ -611,20 +611,45 @@ export function buildContractBlocks(data) {
           </p>
           <div className="mt-16 grid grid-cols-2 gap-8 text-center text-[12px]">
             <div>
-              <div className="mx-auto mb-1 h-16 border-b border-slate-500" />
+              {empleador.gerenteFirma ? (
+                <img src={empleador.gerenteFirma} alt="Firma del gerente general" className="mx-auto mb-1 h-16 object-contain" />
+              ) : (
+                <div className="mx-auto mb-1 h-16 border-b border-slate-500" />
+              )}
               <div className="font-bold">GERENTE GENERAL</div>
               <div>{empleador.gerente}</div>
               <div>{empleador.gerenteDni}</div>
             </div>
             <div>
-              <div className="mx-auto mb-1 h-16 border-b border-slate-500" />
+              {contrato.firmaEmpleado ? (
+                <img src={contrato.firmaEmpleado} alt="Firma del trabajador" className="mx-auto mb-1 h-16 object-contain" />
+              ) : (
+                <div className="mx-auto mb-1 h-16 border-b border-slate-500" />
+              )}
               <div className="font-bold">TRABAJADOR</div>
               <div>{trabajador.nombre}</div>
               <div>{trabajador.dni}</div>
+              {contrato.firmaEmpleadoEn && (
+                <div className="mt-1 text-[9px] text-slate-500">
+                  Firmado electrónicamente el {formatearFechaHoraLarga(contrato.firmaEmpleadoEn)}
+                </div>
+              )}
             </div>
           </div>
         </>
       ),
     },
   ]
+}
+
+function formatearFechaHoraLarga(isoTimestamp) {
+  try {
+    return new Intl.DateTimeFormat('es-PE', {
+      dateStyle: 'long',
+      timeStyle: 'short',
+      timeZone: 'America/Lima',
+    }).format(new Date(isoTimestamp))
+  } catch {
+    return isoTimestamp
+  }
 }

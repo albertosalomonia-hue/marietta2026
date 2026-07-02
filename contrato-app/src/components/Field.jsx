@@ -7,20 +7,20 @@ export default function Field({ label, children }) {
   )
 }
 
-export function TextInput(props) {
+export function TextInput({ className = '', ...props }) {
   return (
     <input
       {...props}
-      className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      className={`rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${className}`}
     />
   )
 }
 
-export function TextArea(props) {
+export function TextArea({ className = '', ...props }) {
   return (
     <textarea
       {...props}
-      className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      className={`rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${className}`}
     />
   )
 }

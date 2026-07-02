@@ -3,7 +3,18 @@
     "allow": [
       "Bash(node diagnose2.mjs)",
       "Bash(node checktext.mjs)",
-      "Bash(node diagnose.mjs)"
+      "Bash(node diagnose.mjs)",
+      "Bash(rm -f downloads/*.pdf)",
+      "Bash(node test.mjs)",
+      "Bash(node inspect.mjs)",
+      "Bash(node admin_test.mjs)",
+      "Bash(npm install *)",
+      "Bash(taskkill //F //PID 19696)",
+      "Bash(rm -rf node_modules/.vite)",
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash(node signature_test.mjs)",
+      "Bash(node screenshot_signed.mjs)"
     ]
   }
 }

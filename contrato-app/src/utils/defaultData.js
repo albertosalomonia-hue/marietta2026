@@ -8,6 +8,7 @@ export const defaultData = {
     fechaInicioActividades: '10 de octubre de 2022',
     fechaRemype: '05 de Mayo del 2022',
     fechaAcreditacion: '24 de Noviembre del 2022',
+    gerenteFirma: null,
   },
   trabajador: {
     nombre: 'TORIBIO TARICUARIMA MALAFAYA',

@@ -23,6 +23,36 @@
     0 12px 28px -8px rgba(15, 23, 42, 0.25);
 }
 
+/* Envoltorio que escala el documento A4 para que quepa en pantallas angostas (celulares).
+   Se desactiva al imprimir y al exportar a PDF, para que ambos usen siempre la resolución real. */
+.responsive-doc-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.responsive-doc-content {
+  transform-origin: top center;
+}
+
+@media print {
+  .responsive-doc-container {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .responsive-doc-content {
+    transform: none !important;
+  }
+}
+
+body.pdf-exporting .responsive-doc-container {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+body.pdf-exporting .responsive-doc-content {
+  transform: none !important;
+}
+
 @media print {
   html, body {
     background: #fff !important;
@@ -40,6 +70,24 @@
   }
   .pdf-page--sheet:last-child {
     break-after: auto;
+  }
+  .modal-backdrop {
+    position: static !important;
+    background: none !important;
+    padding: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+  .modal-card {
+    max-width: none !important;
+    width: auto !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .modal-body {
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
   }
   @page {
     size: A4;
