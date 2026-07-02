@@ -3,7 +3,7 @@ import Avatar from './admin/Avatar'
 import StatusBadge from './admin/StatusBadge'
 import ContractViewerModal from './admin/ContractViewerModal'
 import SignatureModal from './admin/SignatureModal'
-import { calcularEstadoEmpleado, employeeContratoToContractData, obtenerFirmaGuardada } from '../utils/employeeContracts'
+import { calcularEstadoEmpleado, obtenerFirmaGuardadaPath } from '../utils/employeeContracts'
 import { formatearFechaLarga } from '../utils/fechas'
 
 export default function EmployeePortal({ employee, employerConfig, onMarcarLeido, onFirmar, onLogout }) {
@@ -28,7 +28,7 @@ export default function EmployeePortal({ employee, employerConfig, onMarcarLeido
 
       <main className="mx-auto max-w-lg px-4 py-6 sm:px-6 sm:py-8">
         <div className="flex flex-col items-center gap-2 rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <Avatar nombre={employee.nombre} foto={employee.foto} size="lg" />
+          <Avatar nombre={employee.nombre} fotoPath={employee.fotoPath} size="lg" />
           <div className="text-lg font-semibold text-slate-900">{employee.nombre}</div>
           <div className="text-sm text-slate-500">{employee.cargo}</div>
           <div className="text-xs text-slate-400">DNI {employee.dni}</div>
@@ -75,10 +75,10 @@ export default function EmployeePortal({ employee, employerConfig, onMarcarLeido
                 </span>
                 <span
                   className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                    ultimo.firmaEmpleado ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : 'bg-slate-50 text-slate-500 ring-slate-400/20'
+                    ultimo.firmaEmpleadoPath ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : 'bg-slate-50 text-slate-500 ring-slate-400/20'
                   }`}
                 >
-                  {ultimo.firmaEmpleado ? '✓ Firmado' : 'Pendiente de firmar'}
+                  {ultimo.firmaEmpleadoPath ? '✓ Firmado' : 'Pendiente de firmar'}
                 </span>
               </div>
 
@@ -90,7 +90,7 @@ export default function EmployeePortal({ employee, employerConfig, onMarcarLeido
                 >
                   Ver mi contrato
                 </button>
-                {!ultimo.firmaEmpleado && (
+                {!ultimo.firmaEmpleadoPath && (
                   <button
                     type="button"
                     onClick={() => setFirmando(true)}
@@ -108,7 +108,8 @@ export default function EmployeePortal({ employee, employerConfig, onMarcarLeido
       {viendoContrato && ultimo && (
         <ContractViewerModal
           employee={employee}
-          contractData={employeeContratoToContractData(employerConfig, employee, ultimo)}
+          contrato={ultimo}
+          employerConfig={employerConfig}
           onOpened={() => {
             if (!ultimo.leidoEn) onMarcarLeido(ultimo.id)
           }}
@@ -119,8 +120,8 @@ export default function EmployeePortal({ employee, employerConfig, onMarcarLeido
       {firmando && ultimo && (
         <SignatureModal
           title={`Firma de ${employee.nombre}`}
-          firmaGuardada={obtenerFirmaGuardada(employee)}
-          onSave={(dataUrl) => onFirmar(ultimo.id, dataUrl)}
+          firmaGuardadaPath={obtenerFirmaGuardadaPath(employee)}
+          onSave={(resultado) => onFirmar(ultimo.id, resultado)}
           onClose={() => setFirmando(false)}
         />
       )}

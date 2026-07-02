@@ -11,9 +11,10 @@ const TABS = [
 
 export default function AdminApp({
   employees,
-  setEmployees,
   employerConfig,
-  setEmployerConfig,
+  onSaveEmployee,
+  onEliminarEmployee,
+  onGuardarEmployerConfig,
   onGenerarContrato,
   onFirmarContrato,
   onLogout,
@@ -67,9 +68,10 @@ export default function AdminApp({
           ) : (
             <EmpleadosAdmin
               employees={employees}
-              setEmployees={setEmployees}
               employerConfig={employerConfig}
-              setEmployerConfig={setEmployerConfig}
+              onSaveEmployee={onSaveEmployee}
+              onEliminarEmployee={onEliminarEmployee}
+              onGuardarEmployerConfig={onGuardarEmployerConfig}
               onGenerarContrato={onGenerarContrato}
               onFirmarContrato={onFirmarContrato}
             />

@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import SignaturePad from 'signature_pad'
+import { useSignedUrl } from '../../hooks/useSignedUrl'
 
-export default function SignaturePadInput({ initialValue, firmaGuardada, onSave, onCancel }) {
+// onSave recibe { dataUrl } cuando el usuario dibuja/sube una imagen nueva (hay que subirla
+// a Storage), o { existingPath } cuando reutiliza una firma ya guardada (no hace falta subir nada).
+export default function SignaturePadInput({ initialPath, firmaGuardadaPath, onSave, onCancel }) {
   const canvasRef = useRef(null)
   const padRef = useRef(null)
   const fileInputRef = useRef(null)
   const [uploadedImage, setUploadedImage] = useState(null)
+
+  const initialUrl = useSignedUrl(initialPath)
+  const firmaGuardadaUrl = useSignedUrl(firmaGuardadaPath)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -37,22 +43,22 @@ export default function SignaturePadInput({ initialValue, firmaGuardada, onSave,
 
   const handleSave = () => {
     if (uploadedImage) {
-      onSave(uploadedImage)
+      onSave({ dataUrl: uploadedImage })
       return
     }
     if (!padRef.current || padRef.current.isEmpty()) {
       alert('Dibuja una firma o sube una imagen antes de guardar.')
       return
     }
-    onSave(padRef.current.toDataURL('image/png'))
+    onSave({ dataUrl: padRef.current.toDataURL('image/png') })
   }
 
   return (
     <div className="flex flex-col gap-3">
-      {initialValue && !uploadedImage && (
+      {initialUrl && !uploadedImage && (
         <div className="rounded-md border border-slate-200 p-2">
           <p className="mb-1 text-xs text-slate-500">Firma actual guardada:</p>
-          <img src={initialValue} alt="Firma actual" className="h-16 object-contain" />
+          <img src={initialUrl} alt="Firma actual" className="h-16 object-contain" />
         </div>
       )}
 
@@ -64,15 +70,15 @@ export default function SignaturePadInput({ initialValue, firmaGuardada, onSave,
         )}
       </div>
 
-      {firmaGuardada && (
+      {firmaGuardadaUrl && (
         <div className="flex items-center justify-between gap-3 rounded-md border border-indigo-200 bg-indigo-50 p-2">
           <div className="flex items-center gap-2">
-            <img src={firmaGuardada} alt="Firma guardada en el sistema" className="h-10 w-20 rounded bg-white object-contain" />
+            <img src={firmaGuardadaUrl} alt="Firma guardada en el sistema" className="h-10 w-20 rounded bg-white object-contain" />
             <span className="text-xs text-indigo-700">Ya tienes una firma guardada en el sistema</span>
           </div>
           <button
             type="button"
-            onClick={() => onSave(firmaGuardada)}
+            onClick={() => onSave({ existingPath: firmaGuardadaPath })}
             className="shrink-0 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
           >
             Usar mi firma guardada

@@ -1,4 +1,5 @@
 import { diferenciaEnDias, hoyISO, sumarDiasISO, sumarMesesISO } from './fechas'
+import { getSignedUrl } from '../lib/storageFiles'
 
 export function computeFechaFin(fechaInicioISO, duracionValor, duracionUnidad) {
   const valor = Number(duracionValor) || 0
@@ -25,7 +26,7 @@ export function crearEmpleadoVacio() {
     dni: '',
     domicilio: '',
     cargo: 'TRIPULANTE DE EMBARCACIÓN FLUVIAL',
-    foto: null,
+    fotoPath: null,
     pin: '',
     duracionValor: 1,
     duracionUnidad: 'meses',
@@ -41,9 +42,16 @@ export function crearEmpleadoVacio() {
 
 // Arma el objeto de datos que espera ContractPreview/buildContractBlocks a partir de
 // la config de empresa persistida + un empleado + un contrato puntual de su historial.
-export function employeeContratoToContractData(empleadorConfig, employee, contrato) {
+// Resuelve las rutas de Storage (foto/firmas) a URLs firmadas temporales, así el resto
+// del árbol de renderizado (ContractPreview) sigue trabajando con URLs de imagen simples.
+export async function buildContractData(empleadorConfig, employee, contrato) {
+  const [gerenteFirma, firmaEmpleado] = await Promise.all([
+    getSignedUrl(empleadorConfig.gerenteFirmaPath),
+    getSignedUrl(contrato.firmaEmpleadoPath),
+  ])
+
   return {
-    empleador: empleadorConfig,
+    empleador: { ...empleadorConfig, gerenteFirma },
     trabajador: {
       nombre: employee.nombre,
       dni: employee.dni,
@@ -57,7 +65,7 @@ export function employeeContratoToContractData(empleadorConfig, employee, contra
       fechaFirma: contrato.fechaFirma,
       jornadaTexto: employee.jornadaTexto,
       jurisdiccion: employee.jurisdiccion,
-      firmaEmpleado: contrato.firmaEmpleado || null,
+      firmaEmpleado,
       firmaEmpleadoEn: contrato.firmaEmpleadoEn || null,
     },
     remuneracion: {
@@ -81,18 +89,19 @@ export function generarSiguienteContrato(employee) {
     plazoTexto: formatearPlazoTexto(employee.duracionValor, employee.duracionUnidad),
     monto: employee.remuneracion.monto,
     generadoEn: new Date().toISOString(),
-    firmaEmpleado: null,
+    firmaEmpleadoPath: null,
     firmaEmpleadoEn: null,
     leidoEn: null,
   }
 }
 
-// Devuelve la firma más reciente que el empleado ya usó en algún contrato anterior (o null si nunca firmó).
-// Se usa para ofrecer "Usar mi firma guardada" en vez de tener que dibujarla de nuevo cada vez.
-export function obtenerFirmaGuardada(employee) {
-  const firmados = employee.contratos.filter((c) => c.firmaEmpleado)
+// Devuelve la ruta de Storage de la firma más reciente que el empleado ya usó en algún
+// contrato anterior (o null si nunca firmó). Se usa para ofrecer "Usar mi firma guardada"
+// sin tener que volver a subir el archivo (se reutiliza la misma ruta ya existente).
+export function obtenerFirmaGuardadaPath(employee) {
+  const firmados = employee.contratos.filter((c) => c.firmaEmpleadoPath)
   if (!firmados.length) return null
-  return firmados[firmados.length - 1].firmaEmpleado
+  return firmados[firmados.length - 1].firmaEmpleadoPath
 }
 
 // Determina el estado del empleado respecto a su próximo evento de contrato (generación o renovación).

@@ -1,14 +1,14 @@
 import Modal from './Modal'
 import SignaturePadInput from './SignaturePadInput'
 
-export default function SignatureModal({ title, initialValue, firmaGuardada, onSave, onClose }) {
+export default function SignatureModal({ title, initialPath, firmaGuardadaPath, onSave, onClose }) {
   return (
     <Modal title={title} onClose={onClose}>
       <SignaturePadInput
-        initialValue={initialValue}
-        firmaGuardada={firmaGuardada}
-        onSave={(dataUrl) => {
-          onSave(dataUrl)
+        initialPath={initialPath}
+        firmaGuardadaPath={firmaGuardadaPath}
+        onSave={(result) => {
+          onSave(result)
           onClose()
         }}
         onCancel={onClose}

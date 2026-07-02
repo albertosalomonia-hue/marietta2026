@@ -1,27 +1,40 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { listarEmpleadosParaLogin, loginEmpleado } from '../lib/api'
 
-export default function RoleChooser({ employees, onEnterAdmin, onEnterEmployee }) {
+export default function RoleChooser({ onEnterAdmin, onEnterEmployee }) {
   const [mode, setMode] = useState(null) // null | 'empleado'
+  const [empleadosLista, setEmpleadosLista] = useState([])
   const [selectedId, setSelectedId] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
-  const handleEmployeeLogin = (e) => {
+  useEffect(() => {
+    if (mode === 'empleado') {
+      listarEmpleadosParaLogin().then(setEmpleadosLista)
+    }
+  }, [mode])
+
+  const handleEmployeeLogin = async (e) => {
     e.preventDefault()
-    const employee = employees.find((emp) => emp.id === selectedId)
-    if (!employee) {
+    if (!selectedId) {
       setError('Selecciona tu nombre de la lista.')
       return
     }
-    if (!employee.pin) {
-      setError('Este empleado no tiene PIN configurado. Contacta al administrador.')
-      return
+    setError('')
+    setEnviando(true)
+    try {
+      const employee = await loginEmpleado(selectedId, pin)
+      if (!employee) {
+        setError('PIN incorrecto o el empleado no tiene PIN configurado.')
+        return
+      }
+      onEnterEmployee(employee)
+    } catch (err) {
+      setError('Ocurrió un error al iniciar sesión. Intenta de nuevo.')
+    } finally {
+      setEnviando(false)
     }
-    if (pin !== employee.pin) {
-      setError('PIN incorrecto.')
-      return
-    }
-    onEnterEmployee(employee.id)
   }
 
   return (
@@ -58,7 +71,7 @@ export default function RoleChooser({ employees, onEnterAdmin, onEnterEmployee }
                 className="rounded-md border border-slate-300 px-3 py-2 text-sm"
               >
                 <option value="">Selecciona tu nombre…</option>
-                {employees.map((emp) => (
+                {empleadosLista.map((emp) => (
                   <option key={emp.id} value={emp.id}>
                     {emp.nombre}
                   </option>
@@ -91,8 +104,12 @@ export default function RoleChooser({ employees, onEnterAdmin, onEnterEmployee }
               >
                 Volver
               </button>
-              <button type="submit" className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                Entrar
+              <button
+                type="submit"
+                disabled={enviando}
+                className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {enviando ? 'Entrando…' : 'Entrar'}
               </button>
             </div>
           </form>

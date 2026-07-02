@@ -5,6 +5,9 @@ import PhotoInput from './PhotoInput'
 
 export default function EmployeeFormModal({ initialEmployee, onSave, onClose }) {
   const [employee, setEmployee] = useState(initialEmployee)
+  const [fotoDataUrl, setFotoDataUrl] = useState(null)
+  const [fotoRemoved, setFotoRemoved] = useState(false)
+  const [guardando, setGuardando] = useState(false)
 
   const set = (path) => (e) => {
     const value = e.target.value
@@ -20,13 +23,18 @@ export default function EmployeeFormModal({ initialEmployee, onSave, onClose }) 
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!employee.nombre.trim() || !employee.dni.trim()) {
       alert('Nombre y DNI son obligatorios.')
       return
     }
-    onSave(employee)
+    setGuardando(true)
+    try {
+      await onSave(employee, { fotoDataUrl, fotoRemoved })
+    } finally {
+      setGuardando(false)
+    }
   }
 
   const isNew = employee.contratos.length === 0
@@ -35,7 +43,18 @@ export default function EmployeeFormModal({ initialEmployee, onSave, onClose }) 
     <Modal title={initialEmployee.nombre ? 'Editar empleado' : 'Nuevo empleado'} onClose={onClose} wide>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Field label="Foto">
-          <PhotoInput value={employee.foto} onChange={(foto) => setEmployee((prev) => ({ ...prev, foto }))} />
+          <PhotoInput
+            existingPath={fotoRemoved ? null : employee.fotoPath}
+            newDataUrl={fotoDataUrl}
+            onSelectNew={(dataUrl) => {
+              setFotoDataUrl(dataUrl)
+              setFotoRemoved(false)
+            }}
+            onRemove={() => {
+              setFotoDataUrl(null)
+              setFotoRemoved(true)
+            }}
+          />
         </Field>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -128,8 +147,12 @@ export default function EmployeeFormModal({ initialEmployee, onSave, onClose }) 
           <button type="button" onClick={onClose} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             Cancelar
           </button>
-          <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-            Guardar
+          <button
+            type="submit"
+            disabled={guardando}
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {guardando ? 'Guardando…' : 'Guardar'}
           </button>
         </div>
       </form>

@@ -3,24 +3,29 @@ import Modal from './Modal'
 import StatusBadge from './StatusBadge'
 import ContractViewerModal from './ContractViewerModal'
 import SignatureModal from './SignatureModal'
-import { calcularEstadoEmpleado, employeeContratoToContractData, generarSiguienteContrato, obtenerFirmaGuardada } from '../../utils/employeeContracts'
+import { calcularEstadoEmpleado, generarSiguienteContrato, obtenerFirmaGuardadaPath } from '../../utils/employeeContracts'
 import { formatearFechaLarga } from '../../utils/fechas'
 
 export default function ContratosModal({ employee, employerConfig, onGenerarContrato, onFirmarContrato, onClose }) {
   const [viendoContratoId, setViendoContratoId] = useState(null)
   const [firmandoContratoId, setFirmandoContratoId] = useState(null)
+  const [generando, setGenerando] = useState(false)
   const viendoContrato = employee.contratos.find((c) => c.id === viendoContratoId) || null
 
   const { estado, diasRestantes, tipo } = calcularEstadoEmpleado(employee)
 
-  const handleGenerar = () => {
-    const nuevo = generarSiguienteContrato(employee)
-    onGenerarContrato(employee.id, nuevo)
+  const handleGenerar = async () => {
+    setGenerando(true)
+    try {
+      const nuevo = generarSiguienteContrato(employee)
+      await onGenerarContrato(employee.id, nuevo)
+    } finally {
+      setGenerando(false)
+    }
   }
 
-  const handleGuardarFirma = (dataUrl) => {
-    onFirmarContrato(employee.id, firmandoContratoId, dataUrl)
-    setFirmandoContratoId(null)
+  const handleGuardarFirma = async (resultado) => {
+    await onFirmarContrato(employee.id, firmandoContratoId, resultado)
   }
 
   const mensajeEstado =
@@ -40,9 +45,10 @@ export default function ContratosModal({ employee, employerConfig, onGenerarCont
         <button
           type="button"
           onClick={handleGenerar}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+          disabled={generando}
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {employee.contratos.length === 0 ? 'Generar primer contrato' : 'Generar siguiente contrato'}
+          {generando ? 'Generando…' : employee.contratos.length === 0 ? 'Generar primer contrato' : 'Generar siguiente contrato'}
         </button>
       </div>
 
@@ -79,7 +85,7 @@ export default function ContratosModal({ employee, employerConfig, onGenerarCont
                     </span>
                   </td>
                   <td className="py-2 pr-3">
-                    {c.firmaEmpleado ? (
+                    {c.firmaEmpleadoPath ? (
                       <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
                         Firmado
                       </span>
@@ -112,7 +118,8 @@ export default function ContratosModal({ employee, employerConfig, onGenerarCont
       {viendoContrato && (
         <ContractViewerModal
           employee={employee}
-          contractData={employeeContratoToContractData(employerConfig, employee, viendoContrato)}
+          contrato={viendoContrato}
+          employerConfig={employerConfig}
           onClose={() => setViendoContratoId(null)}
         />
       )}
@@ -120,7 +127,7 @@ export default function ContratosModal({ employee, employerConfig, onGenerarCont
       {firmandoContratoId && (
         <SignatureModal
           title={`Firma de ${employee.nombre}`}
-          firmaGuardada={obtenerFirmaGuardada(employee)}
+          firmaGuardadaPath={obtenerFirmaGuardadaPath(employee)}
           onSave={handleGuardarFirma}
           onClose={() => setFirmandoContratoId(null)}
         />

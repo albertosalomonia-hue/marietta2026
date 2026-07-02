@@ -1,24 +1,34 @@
 import { useState } from 'react'
 import Field, { TextInput, TextArea } from '../Field'
 import SignatureModal from './SignatureModal'
+import { useSignedUrl } from '../../hooks/useSignedUrl'
+import { uploadAsAdmin } from '../../lib/storageFiles'
 
 export default function EmployerConfigPanel({ employerConfig, onSave }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(employerConfig)
   const [firmando, setFirmando] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const gerenteFirmaUrl = useSignedUrl(draft.gerenteFirmaPath)
 
   const set = (key) => (e) => setDraft((prev) => ({ ...prev, [key]: e.target.value }))
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    onSave(draft)
-    setOpen(false)
+    setGuardando(true)
+    try {
+      await onSave(draft)
+      setOpen(false)
+    } finally {
+      setGuardando(false)
+    }
   }
 
-  const handleSaveFirma = (dataUrl) => {
-    const next = { ...draft, gerenteFirma: dataUrl }
+  const handleSaveFirma = async (result) => {
+    const path = result.dataUrl ? await uploadAsAdmin('signatures/gerente.png', result.dataUrl) : result.existingPath
+    const next = { ...draft, gerenteFirmaPath: path }
     setDraft(next)
-    onSave(next)
+    await onSave(next)
   }
 
   return (
@@ -61,8 +71,8 @@ export default function EmployerConfigPanel({ employerConfig, onSave }) {
           <div className="flex flex-col gap-1 sm:col-span-2">
             <span className="text-sm font-medium text-slate-700">Firma del gerente general (se usa en todos los contratos)</span>
             <div className="flex items-center gap-3">
-              {draft.gerenteFirma ? (
-                <img src={draft.gerenteFirma} alt="Firma del gerente" className="h-14 rounded border border-slate-200 bg-white object-contain px-2" />
+              {gerenteFirmaUrl ? (
+                <img src={gerenteFirmaUrl} alt="Firma del gerente" className="h-14 rounded border border-slate-200 bg-white object-contain px-2" />
               ) : (
                 <span className="text-xs text-slate-400">Sin firma registrada</span>
               )}
@@ -71,14 +81,18 @@ export default function EmployerConfigPanel({ employerConfig, onSave }) {
                 onClick={() => setFirmando(true)}
                 className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
               >
-                {draft.gerenteFirma ? 'Cambiar firma' : 'Registrar firma'}
+                {gerenteFirmaUrl ? 'Cambiar firma' : 'Registrar firma'}
               </button>
             </div>
           </div>
 
           <div className="sm:col-span-2 flex justify-end">
-            <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-              Guardar datos de la empresa
+            <button
+              type="submit"
+              disabled={guardando}
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {guardando ? 'Guardando…' : 'Guardar datos de la empresa'}
             </button>
           </div>
         </form>
@@ -87,7 +101,7 @@ export default function EmployerConfigPanel({ employerConfig, onSave }) {
       {firmando && (
         <SignatureModal
           title="Firma del gerente general"
-          initialValue={draft.gerenteFirma}
+          initialPath={draft.gerenteFirmaPath}
           onSave={handleSaveFirma}
           onClose={() => setFirmando(false)}
         />

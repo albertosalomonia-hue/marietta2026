@@ -7,9 +7,10 @@ import { crearEmpleadoVacio } from '../../utils/employeeContracts'
 
 export default function EmpleadosAdmin({
   employees,
-  setEmployees,
   employerConfig,
-  setEmployerConfig,
+  onSaveEmployee,
+  onEliminarEmployee,
+  onGuardarEmployerConfig,
   onGenerarContrato,
   onFirmarContrato,
 }) {
@@ -18,22 +19,14 @@ export default function EmpleadosAdmin({
 
   const contratosEmployee = employees.find((e) => e.id === contratosEmployeeId) || null
 
-  const handleSaveEmployee = (employee) => {
-    setEmployees((prev) => {
-      const exists = prev.some((e) => e.id === employee.id)
-      return exists ? prev.map((e) => (e.id === employee.id ? employee : e)) : [...prev, employee]
-    })
+  const handleSaveEmployee = async (employee, fotoInfo) => {
+    await onSaveEmployee(employee, fotoInfo)
     setEditingEmployee(null)
-  }
-
-  const handleEliminar = (employee) => {
-    if (!confirm(`¿Eliminar a ${employee.nombre}? Se perderá su historial de contratos.`)) return
-    setEmployees((prev) => prev.filter((e) => e.id !== employee.id))
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <EmployerConfigPanel employerConfig={employerConfig} onSave={setEmployerConfig} />
+      <EmployerConfigPanel employerConfig={employerConfig} onSave={onGuardarEmployerConfig} />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold text-slate-900">Empleados registrados</h2>
@@ -51,7 +44,7 @@ export default function EmpleadosAdmin({
           employees={employees}
           onVerContratos={(emp) => setContratosEmployeeId(emp.id)}
           onEditar={(emp) => setEditingEmployee(emp)}
-          onEliminar={handleEliminar}
+          onEliminar={onEliminarEmployee}
         />
       </div>
 
