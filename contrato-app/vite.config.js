@@ -32,6 +32,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         // No cachear llamadas a Supabase: los datos siempre deben venir de la red.
         navigateFallbackDenylist: [/^\/api/],
+        // El service worker nuevo toma el control de inmediato (no espera a que se
+        // cierren todas las pestañas/instancias viejas). Evita quedarse "atascado"
+        // en una versión vieja cacheada de la app tras cada actualización.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
       },
     }),
   ],
