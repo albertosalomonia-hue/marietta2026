@@ -79,11 +79,13 @@ on conflict (id) do nothing;
 -- =========================================================
 -- ROW LEVEL SECURITY
 -- =========================================================
--- El admin real (Supabase Auth, rol "authenticated") tiene acceso completo.
--- El portal de empleado NO usa Supabase Auth (entra con PIN dentro de la app),
--- así que el rol "anon" NO tiene acceso directo a employees/contratos: solo
--- puede interactuar a través de las funciones RPC de abajo, que exponen
--- exclusivamente lo necesario (nunca la tabla completa).
+-- NOTA DE SEGURIDAD: por ahora el panel de administrador NO tiene login real
+-- (se abandonó Supabase Auth por fricción operativa), así que estas políticas
+-- están abiertas también al rol "anon" — cualquiera con la anon key (pública en
+-- el código del navegador) puede leer/escribir empleados, contratos y config de
+-- empresa. Es un trade-off consciente para un prototipo interno de bajo riesgo;
+-- si más adelante se retoma un login real de administrador, estas políticas deben
+-- volver a restringirse a "authenticated" únicamente.
 
 alter table public.employer_config enable row level security;
 alter table public.employees enable row level security;
@@ -98,21 +100,21 @@ create policy employer_config_select_all
 drop policy if exists employer_config_write_admin on public.employer_config;
 create policy employer_config_write_admin
   on public.employer_config for update
-  to authenticated
+  to anon, authenticated
   using (true)
   with check (true);
 
 drop policy if exists employees_admin_all on public.employees;
 create policy employees_admin_all
   on public.employees for all
-  to authenticated
+  to anon, authenticated
   using (true)
   with check (true);
 
 drop policy if exists contratos_admin_all on public.contratos;
 create policy contratos_admin_all
   on public.contratos for all
-  to authenticated
+  to anon, authenticated
   using (true)
   with check (true);
 
@@ -227,7 +229,7 @@ on conflict (id) do nothing;
 drop policy if exists contratos_files_admin_all on storage.objects;
 create policy contratos_files_admin_all
   on storage.objects for all
-  to authenticated
+  to anon, authenticated
   using (bucket_id = 'contratos-files')
   with check (bucket_id = 'contratos-files');
 

@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import RoleChooser from './components/RoleChooser'
-import AdminLogin from './components/AdminLogin'
 import EmployeePortal from './components/EmployeePortal'
 import AdminApp from './components/AdminApp'
-import { useAdminSession } from './hooks/useAdminSession'
 import { useAdminEmployees } from './hooks/useAdminData'
 import { useEmployerConfig } from './hooks/useEmployerConfig'
-import { signOutAdmin } from './lib/auth'
 import {
   deleteEmployeeRow,
   firmarContratoComoAdmin,
@@ -20,14 +17,13 @@ import {
 import { deleteFile, uploadAsAdmin, uploadEmployeeSignature } from './lib/storageFiles'
 
 function App() {
-  const adminSession = useAdminSession()
-  const { employees, loading, refetch } = useAdminEmployees(adminSession)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const { employees, loading, refetch } = useAdminEmployees(isAdmin)
   const { employerConfig, loading: loadingEmployerConfig, refetch: refetchEmployerConfig } = useEmployerConfig()
 
-  const [showAdminLogin, setShowAdminLogin] = useState(false)
   const [portalEmployee, setPortalEmployee] = useState(null)
 
-  // ---------- Mutaciones de admin (requieren sesión autenticada) ----------
+  // ---------- Mutaciones de admin ----------
 
   const handleSaveEmployee = async (employee, { fotoDataUrl, fotoRemoved }) => {
     let fotoPath = employee.fotoPath
@@ -71,7 +67,7 @@ function App() {
     await refetch()
   }
 
-  // ---------- Mutaciones del portal de empleado (rol anon, sin sesión real) ----------
+  // ---------- Mutaciones del portal de empleado (rol anon, con PIN) ----------
 
   const handleMarcarLeido = async (contratoId) => {
     await marcarContratoLeido(contratoId)
@@ -92,17 +88,9 @@ function App() {
     }))
   }
 
-  // ---------- Enrutamiento por sesión ----------
+  // ---------- Enrutamiento ----------
 
-  if (adminSession === undefined) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100 text-sm text-slate-500">
-        Cargando…
-      </div>
-    )
-  }
-
-  if (adminSession) {
+  if (isAdmin) {
     if (loading || loadingEmployerConfig || !employerConfig) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-slate-100 text-sm text-slate-500">
@@ -119,7 +107,7 @@ function App() {
         onGuardarEmployerConfig={handleGuardarEmployerConfig}
         onGenerarContrato={handleGenerarContrato}
         onFirmarContrato={handleFirmarContratoAdmin}
-        onLogout={signOutAdmin}
+        onLogout={() => setIsAdmin(false)}
       />
     )
   }
@@ -143,11 +131,7 @@ function App() {
     )
   }
 
-  if (showAdminLogin) {
-    return <AdminLogin onBack={() => setShowAdminLogin(false)} />
-  }
-
-  return <RoleChooser onEnterAdmin={() => setShowAdminLogin(true)} onEnterEmployee={setPortalEmployee} />
+  return <RoleChooser onEnterAdmin={() => setIsAdmin(true)} onEnterEmployee={setPortalEmployee} />
 }
 
 export default App

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchEmployeesWithContratos } from '../lib/api'
 
-// Lista de empleados: solo la puede leer un administrador autenticado (ver RLS en supabase/schema.sql).
-export function useAdminEmployees(session) {
+// Lista de empleados: solo se consulta cuando el usuario entró como administrador
+// (ver RLS en supabase/schema.sql — actualmente abierta al rol anon, sin login real).
+export function useAdminEmployees(isAdmin) {
   const [employees, setEmployees] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -12,10 +13,10 @@ export function useAdminEmployees(session) {
   }, [])
 
   useEffect(() => {
-    if (!session) return
+    if (!isAdmin) return
     setLoading(true)
     refetch().finally(() => setLoading(false))
-  }, [session, refetch])
+  }, [isAdmin, refetch])
 
   return { employees, loading, refetch }
 }
