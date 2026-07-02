@@ -1,5 +1,19 @@
 import { useState } from 'react'
 
+// Espera activamente (en vez de confiar en un tiempo fijo) a que la hoja recupere
+// su ancho real de 210mm (~790px) tras quitarle el escalado responsivo. En
+// celulares más lentos, un tiempo fijo corto puede no alcanzar para que el
+// navegador termine de aplicar el cambio de estilo antes de capturar, lo que
+// producía capturas "encogidas" que luego se veían agrandadas/borrosas al
+// estirarse dentro de la hoja A4 del PDF.
+async function esperarEscalaCompleta(pageEl, timeoutMs = 1500) {
+  const inicio = performance.now()
+  while (performance.now() - inicio < timeoutMs) {
+    if (pageEl.getBoundingClientRect().width >= 780) return
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+  }
+}
+
 export function usePdfExport(previewRef) {
   const [generandoPdf, setGenerandoPdf] = useState(false)
 
@@ -18,7 +32,10 @@ export function usePdfExport(previewRef) {
     // qué tan angosta sea la pantalla desde la que se exporta.
     document.body.classList.add('pdf-exporting')
     try {
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+      // Fuerza un reflow síncrono y confirma que el des-escalado ya se aplicó de verdad
+      // antes de seguir, en vez de asumirlo por tiempo.
+      void document.body.offsetHeight
+      await esperarEscalaCompleta(pageEls[0])
 
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
         import('html2canvas-pro'),
