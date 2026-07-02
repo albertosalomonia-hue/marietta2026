@@ -60,6 +60,14 @@ export function usePdfExport(previewRef) {
       pdf.save(filename)
     } catch (error) {
       console.error('Error al generar el PDF:', error)
+      // La sesión tiene cargada una versión vieja de la app y el archivo que intenta
+      // cargar bajo demanda ya no existe en el servidor (se desplegó una versión más
+      // nueva). Recargar trae la versión actual en vez de dejar el error.
+      if (/dynamically imported module|Failed to fetch/i.test(error.message)) {
+        alert('Hay una versión más nueva de la aplicación disponible. Se va a recargar la página; después vuelve a intentar descargar el PDF.')
+        window.location.reload()
+        return
+      }
       alert('Ocurrió un error al generar el PDF. Revisa la consola para más detalles.')
     } finally {
       document.body.classList.remove('pdf-exporting')
